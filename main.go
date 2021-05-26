@@ -16,61 +16,11 @@ import (
 var count int
 
 func main() {
-	//Mosaiic()
-	im := Pixels("test.jpg")
-	h, w := len(im), len(im[0])
-	tree := BuildTree(h, w)
-	//grayscaled := GrayScale(im)
-	colorMap := make([][][]color.Color, len(tree))
-	level := 1
-	for i := 0; i < len(tree); i++ {
-		colors := BlockColor(tree[i], im)
-		//ascii := Ascii(tree[i], grayscaled)
-		//lines := make([]string, level)
-		im := make([][]color.Color, level)
-		idx := 0
-		for y := 0; y < level*level; y += level {
-			//lines[idx] = string(ascii[y : y+level])
-			im[idx] = colors[y : y+level]
-			idx++
-		}
-		colorMap[i] = im
-		//CreateAsciiImage(lines, im, w, h)
-		//CreateMosaicImage(im, tree[i], w, h)
-		level <<= 1
-	}
-	dc := gg.NewContext(w, h)
 	count = 0
-	RecursiveMosaic(dc, tree, colorMap, 0)
+	Mosaiic()
 }
 
-func RecursiveMosaic(dc *gg.Context, tree map[int][]int, colors [][][]color.Color, index int) {
-	top_y := 0.0
-	y_count := 0
-	indices := tree[index]
-	for y := 0; y < len(indices); y += 2 {
-		top_x := 0.0
-		x_count := 0
-		for x := 1; x < len(indices); x += 2 {
-			R, G, B, _ := colors[index][y_count][x_count].RGBA()
-			x_count++
-			dc.DrawRectangle(top_x, top_y, float64(indices[x])-top_x, float64(indices[y])-top_y)
-			dc.SetRGB(float64(R)/256, float64(G)/256, float64(B)/256)
-			dc.Fill()
-			top_x = float64(indices[x])
-		}
-		top_y = float64(indices[y])
-		y_count++
-	}
-	dc.SavePNG(filepath.Join("Data", strconv.Itoa(count)+"color.png"))
-	count++
-	if index != len(tree)-1 {
-		RecursiveMosaic(dc, tree, colors, index+1)
-	}
-}
-
-func CreateMosaicImage(colors [][]color.Color, indices []int, w, h int) {
-	dc := gg.NewContext(w, h)
+func CreateMosaicImage(dc *gg.Context, colors [][]color.Color, indices []int) {
 	top_y := 0.0
 	y_count := 0
 	for y := 0; y < len(indices); y += 2 {
@@ -87,32 +37,52 @@ func CreateMosaicImage(colors [][]color.Color, indices []int, w, h int) {
 		top_y = float64(indices[y])
 		y_count++
 	}
-	dc.SavePNG(strconv.Itoa(len(colors)) + "color.png")
+	dc.SavePNG(filepath.Join("Data", strconv.Itoa(count)+"color.png"))
+	count++
 }
 
-func CreateAsciiImage(lines []string, colors [][]color.Color, indices []int, w, h int) {
-	dc := gg.NewContext(w, h)
+func CreateAsciiImage(dc *gg.Context, lines []string, colors [][]color.Color, indices []int) {
 	font, err := truetype.Parse(gomono.TTF)
 	if err != nil {
 		panic("Go Mono Font not found.")
 	}
 	face := truetype.NewFace(font, &truetype.Options{
-		Size: 5,
+		Size: 11,
 	})
 	dc.SetFontFace(face)
-	row, column := 0.0, 0.0
 	_, ht := dc.MeasureString(string(lines[0][0]))
-	for y, line := range lines {
-		column = 0.0
-		row += ht
-		for x, char := range line {
-			R, G, B, _ := colors[y][x].RGBA()
-			dc.SetRGB(float64(R)/256, float64(G)/256, float64(B)/256)
-			dc.DrawString(string(char), column, row)
-			column += ht
+	count_y := 0
+	row := ht
+	for y := 0; y < len(indices); y += 2 {
+		for row < float64(indices[y]) {
+			count_x := 0
+			column := 0.0
+			for x := 1; x < len(indices); x += 2 {
+				for column < float64(indices[x]) {
+					R, G, B, _ := colors[count_y][count_x].RGBA()
+					dc.SetRGB(float64(R)/256, float64(G)/256, float64(B)/256)
+					dc.DrawString(string(lines[count_y][count_x]), column, row)
+					column += ht
+				}
+				count_x++
+			}
+			row += ht
 		}
+		count_y++
 	}
-	dc.SavePNG(strconv.Itoa(len(lines)) + ".png")
+
+	// for y, line := range lines {
+	// 	column = 0.0
+	// 	row += ht
+	// 	for x, char := range line {
+	// 		R, G, B, _ := colors[y][x].RGBA()
+	// 		dc.SetRGB(float64(R)/256, float64(G)/256, float64(B)/256)
+	// 		dc.DrawString(string(char), column, row)
+	// 		column += ht
+	// 	}
+	// }
+	dc.SavePNG(filepath.Join("Data", strconv.Itoa(count)+"color.png"))
+	count++
 }
 
 func Mosaiic() {
@@ -136,8 +106,9 @@ func Mosaiic() {
 			im[idx] = colors[y : y+level]
 			idx++
 		}
-		//CreateAsciiImage(lines, im, w, h)
-		CreateMosaicImage(im, tree[i], w, h)
+		dc := gg.NewContext(w, h)
+		CreateAsciiImage(dc, lines, im, tree[i])
+		//CreateMosaicImage(dc, im, tree[i])
 		level <<= 1
 	}
 }
