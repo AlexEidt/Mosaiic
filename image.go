@@ -2,11 +2,14 @@ package main
 
 import (
 	"fmt"
+	"image"
 	"image/color"
 	"image/jpeg"
+	"image/png"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/fogleman/gg"
 	"github.com/golang/freetype/truetype"
@@ -30,7 +33,7 @@ func CreateMosaicImage(dc *gg.Context, colors [][]color.Color, indices []int, co
 		top_y = float64(indices[y])
 		y_count++
 	}
-	dc.SavePNG(filepath.Join("Data", strconv.Itoa(count)+"color.png"))
+	dc.SavePNG(filepath.Join("Data", strconv.Itoa(count)+".png"))
 }
 
 func CreateAsciiImage(
@@ -49,6 +52,10 @@ func CreateAsciiImage(
 		Size: float64(fontsize),
 	})
 	dc.SetFontFace(face)
+	hascolor := colors != nil
+	if hascolor {
+		dc.SetRGB(0, 0, 0)
+	}
 	_, ht := dc.MeasureString(string(lines[0][0]))
 	count_y := 0
 	row := ht
@@ -58,7 +65,7 @@ func CreateAsciiImage(
 			column := 0.0
 			for x := 1; x < len(indices); x += 2 {
 				for column < float64(indices[x]) {
-					if colors != nil {
+					if hascolor {
 						R, G, B, _ := colors[count_y][count_x].RGBA()
 						dc.SetRGB(float64(R)/256, float64(G)/256, float64(B)/256)
 					}
@@ -71,7 +78,7 @@ func CreateAsciiImage(
 		}
 		count_y++
 	}
-	dc.SavePNG(filepath.Join("Data", strconv.Itoa(count)+"color.png"))
+	dc.SavePNG(filepath.Join("Data", strconv.Itoa(count)+".png"))
 }
 
 func BlockColor(indices []int, image [][]color.Color, grayscale bool) []color.Color {
@@ -160,7 +167,15 @@ func Pixels(filename string) [][]color.Color {
 	}
 	defer file.Close()
 
-	im, err := jpeg.Decode(file)
+	var im image.Image
+	if strings.HasSuffix(filename, "jpg") {
+		im, err = jpeg.Decode(file)
+	} else if strings.HasSuffix(filename, "png") {
+		im, err = png.Decode(file)
+	} else {
+		im, _, err = image.Decode(file)
+	}
+
 	if err != nil {
 		fmt.Printf("%s is an invalid image format. Could not parse.\n", filename)
 		return nil

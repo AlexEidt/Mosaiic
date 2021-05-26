@@ -15,18 +15,23 @@ func main() {
 	os.MkdirAll(outputDir, os.ModePerm)
 
 	// Parse command line args.
-	fontsize := flag.Int("f", 12, "Font Size for ASCII Graphics.")
+	fontsize := flag.Int("font", 12, "Font Size for ASCII Graphics.")
 	ascii := flag.Bool("ascii", false, "Use ASCII Graphics.")
-	hascolor := flag.Bool("color", true, "Include color with ASCII.")
+	hascolor := flag.Bool("color", false, "Include color with ASCII.")
 	grayscale := flag.Bool("grayscale", false, "Grayscale the image.")
 	keep := flag.Bool("keep", false, "Keep frames used for GIF.")
-	delay := flag.Int("d", 100, "GIF Frame Delay in 1/100 of a second. (default 100).")
+	//background := flag.Bool("b", false, "White background for ASCII.")
+	delay := flag.Int("delay", 100, "GIF Frame Delay in 1/100 of a second.")
+	// background
+	// contrast
 
 	flag.Parse()
 
 	args := flag.Args()
 
 	filename := args[0]
+
+	//fmt.Println(*grayscale, *keep, *ascii, *hascolor, *fontsize, *delay)
 
 	Mosaiic(filename, *grayscale, *keep, *ascii, *hascolor, *fontsize, *delay)
 }
@@ -57,7 +62,7 @@ func Mosaiic(filename string, grayscale, keep, ascii, hascolor bool, fontsize, d
 			ASCII = Ascii(tree[i], grayscaled)
 			lines = make([]string, level)
 		}
-		if hascolor {
+		if hascolor || !ascii {
 			colors = BlockColor(tree[i], image, grayscale)
 			im = make([][]color.Color, level)
 		} else {
@@ -69,16 +74,16 @@ func Mosaiic(filename string, grayscale, keep, ascii, hascolor bool, fontsize, d
 			if ascii {
 				lines[idx] = string(ASCII[y : y+level])
 			}
-			if hascolor {
+			if hascolor || !ascii {
 				im[idx] = colors[y : y+level]
 			}
 			idx++
 		}
-		dc := gg.NewContext(w, h)
+		canvas := gg.NewContext(w, h)
 		if ascii {
-			CreateAsciiImage(dc, lines, im, tree[i], fontsize, i)
+			CreateAsciiImage(canvas, lines, im, tree[i], fontsize, i)
 		} else {
-			CreateMosaicImage(dc, im, tree[i], i)
+			CreateMosaicImage(canvas, im, tree[i], i)
 		}
 		level <<= 1
 	}
