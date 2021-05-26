@@ -7,8 +7,6 @@ import (
 	"image/jpeg"
 	"image/png"
 	"os"
-	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/fogleman/gg"
@@ -16,7 +14,7 @@ import (
 	"golang.org/x/image/font/gofont/gomono"
 )
 
-func CreateMosaicImage(dc *gg.Context, colors [][]color.Color, indices []int, count int) {
+func CreateMosaicImage(canvas *gg.Context, colors [][]color.Color, indices []int) {
 	top_y := 0.0
 	y_count := 0
 	for y := 0; y < len(indices); y += 2 {
@@ -25,24 +23,22 @@ func CreateMosaicImage(dc *gg.Context, colors [][]color.Color, indices []int, co
 		for x := 1; x < len(indices); x += 2 {
 			R, G, B, _ := colors[y_count][x_count].RGBA()
 			x_count++
-			dc.DrawRectangle(top_x, top_y, float64(indices[x])-top_x, float64(indices[y])-top_y)
-			dc.SetRGB(float64(R)/256, float64(G)/256, float64(B)/256)
-			dc.Fill()
+			canvas.DrawRectangle(top_x, top_y, float64(indices[x])-top_x, float64(indices[y])-top_y)
+			canvas.SetRGB(float64(R)/256, float64(G)/256, float64(B)/256)
+			canvas.Fill()
 			top_x = float64(indices[x])
 		}
 		top_y = float64(indices[y])
 		y_count++
 	}
-	dc.SavePNG(filepath.Join("Data", strconv.Itoa(count)+".png"))
 }
 
 func CreateAsciiImage(
-	dc *gg.Context,
+	canvas *gg.Context,
 	lines []string,
 	colors [][]color.Color,
 	indices []int,
-	fontsize,
-	count int,
+	fontsize int,
 ) {
 	font, err := truetype.Parse(gomono.TTF)
 	if err != nil {
@@ -51,12 +47,12 @@ func CreateAsciiImage(
 	face := truetype.NewFace(font, &truetype.Options{
 		Size: float64(fontsize),
 	})
-	dc.SetFontFace(face)
+	canvas.SetFontFace(face)
 	hascolor := colors != nil
-	if hascolor {
-		dc.SetRGB(0, 0, 0)
+	if !hascolor {
+		canvas.SetRGB(0, 0, 0)
 	}
-	_, ht := dc.MeasureString(string(lines[0][0]))
+	_, ht := canvas.MeasureString(string(lines[0][0]))
 	count_y := 0
 	row := ht
 	for y := 0; y < len(indices); y += 2 {
@@ -67,9 +63,9 @@ func CreateAsciiImage(
 				for column < float64(indices[x]) {
 					if hascolor {
 						R, G, B, _ := colors[count_y][count_x].RGBA()
-						dc.SetRGB(float64(R)/256, float64(G)/256, float64(B)/256)
+						canvas.SetRGB(float64(R)/256, float64(G)/256, float64(B)/256)
 					}
-					dc.DrawString(string(lines[count_y][count_x]), column, row)
+					canvas.DrawString(string(lines[count_y][count_x]), column, row)
 					column += ht
 				}
 				count_x++
@@ -78,7 +74,6 @@ func CreateAsciiImage(
 		}
 		count_y++
 	}
-	dc.SavePNG(filepath.Join("Data", strconv.Itoa(count)+".png"))
 }
 
 func BlockColor(indices []int, image [][]color.Color, grayscale bool) []color.Color {
@@ -146,7 +141,7 @@ func Ascii(indices []int, grayscaled [][]int) []byte {
 	return ascii
 }
 
-func GrayScale(image [][]color.Color) [][]int {
+func AsciiChars(image [][]color.Color) [][]int {
 	grayscaled := make([][]int, len(image))
 	for y := 0; y < len(image); y++ {
 		grayscaled[y] = make([]int, len(image[y]))
