@@ -45,27 +45,7 @@ Python is used via a system call to create the GIFs. The Golang GIF library took
 
 # Gallery
 
-## Default
-
-```
-go run *.go Images/Balloon.jpg balloon
-```
-
-<img src="GIFs/balloon.gif" alt="Balloon GIF Default" width=70%>
-
-<br />
-
-## Grayscaled
-
-```
-go run *.go -grayscale Images/Balloon.jpg balloon-gray
-```
-
-<img src="GIFs/balloon-gray.gif" alt="Balloon GIF Grayscaled" width=70%>
-
-<br />
-
-## Default ASCII (Monochrome)
+## ASCII (Monochrome)
 
 ```
 go run *.go -ascii Images/Balloon.jpg balloon-ascii
@@ -122,3 +102,25 @@ go run *.go -ascii -font 16 Images/Balloon.jpg balloon-ascii-color-font-16
 ```
 
 <img src="GIFs/balloon-ascii-color-font-16.gif" alt="Balloon GIF ASCII Font 16" width=70%>
+
+<br />
+
+## Color
+
+```
+go run *.go Images/Balloon.jpg balloon
+```
+
+<img src="GIFs/balloon.gif" alt="Balloon GIF Default" width=70%>
+
+<br />
+
+## Grayscaled
+
+```
+go run *.go -grayscale Images/Balloon.jpg balloon-gray
+```
+
+<img src="GIFs/balloon-gray.gif" alt="Balloon GIF Grayscaled" width=70%>
+
+<br />
