@@ -29,12 +29,11 @@ func main() {
 	os.MkdirAll(gifs_dir, os.ModePerm)
 
 	// Parse command line args.
-	fontsize := flag.Int("font", 12, "Font Size for ASCII Graphics.")
+	fontsize := flag.Float64("font", 6.0, "Font Size for ASCII Graphics.")
 	ascii := flag.Bool("ascii", false, "Use ASCII Graphics.")
 	hascolor := flag.Bool("color", false, "Include color with ASCII.")
 	grayscale := flag.Bool("grayscale", false, "Grayscale the image.")
 	keep := flag.Bool("keep", false, "Keep frames used for GIF.")
-	background := flag.Bool("b", false, "White background for ASCII if included. Transparent otherwise.")
 	fps := flag.Float64("fps", 1.0, "GIF Frames per second.")
 
 	flag.Parse()
@@ -45,7 +44,7 @@ func main() {
 	output := args[1]
 
 	// Create Moasic Frames.
-	n := Mosaiic(filename, *grayscale, *ascii, *background, *hascolor, *fontsize)
+	n := Mosaiic(filename, *grayscale, *ascii, *hascolor, *fontsize)
 
 	// Remove frames if specified.
 	if !*keep && n != -1 {
@@ -70,9 +69,8 @@ func Mosaiic(
 	filename string,
 	grayscale,
 	ascii,
-	background,
 	hascolor bool,
-	fontsize int,
+	fontsize float64,
 ) int {
 	pixels := Pixels(filename)
 	if pixels == nil {
@@ -87,6 +85,8 @@ func Mosaiic(
 	if ascii {
 		chars = AsciiChars(pixels)
 	} else {
+		// Copy Original Image as the last frame of any
+		// non-ASCII image.
 		CopyImage(pixels, len(tree), grayscale)
 	}
 
@@ -95,6 +95,8 @@ func Mosaiic(
 	var colors []color.Color
 	var im [][]color.Color
 
+	// "level" represents the current level of division.
+	// level * level gives the current number of image segments.
 	level := 1
 	for i := 0; i < len(tree); i++ {
 		if ascii {
@@ -121,11 +123,9 @@ func Mosaiic(
 
 		canvas := gg.NewContext(w, h)
 		if ascii {
-			if background {
-				// Set background of ASCII images to be white.
-				canvas.SetRGB(1, 1, 1)
-				canvas.Clear()
-			}
+			// Set background of ASCII images to be white.
+			canvas.SetRGB(1, 1, 1)
+			canvas.Clear()
 			CreateAsciiImage(canvas, lines, im, tree[i], fontsize)
 		} else {
 			CreateMosaicImage(canvas, im, tree[i])

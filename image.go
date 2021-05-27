@@ -28,11 +28,11 @@ func CreateMosaicImage(canvas *gg.Context, colors [][]color.Color, indices []int
 		x_count := 0
 		for x := 1; x < len(indices); x += 2 {
 			R, G, B, _ := colors[y_count][x_count].RGBA()
-			x_count++
 			canvas.DrawRectangle(top_x, top_y, float64(indices[x])-top_x, float64(indices[y])-top_y)
 			canvas.SetRGB(float64(R)/256, float64(G)/256, float64(B)/256)
 			canvas.Fill()
 			top_x = float64(indices[x])
+			x_count++
 		}
 		top_y = float64(indices[y])
 		y_count++
@@ -45,14 +45,14 @@ func CreateAsciiImage(
 	lines []string,
 	colors [][]color.Color,
 	indices []int,
-	fontsize int,
+	fontsize float64,
 ) {
 	font, err := truetype.Parse(gomono.TTF)
 	if err != nil {
 		panic("Go Mono Font not found.")
 	}
 	face := truetype.NewFace(font, &truetype.Options{
-		Size: float64(fontsize),
+		Size: fontsize,
 	})
 	canvas.SetFontFace(face)
 	hascolor := colors != nil
