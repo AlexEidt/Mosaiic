@@ -1,3 +1,6 @@
+// Alex Eidt
+// Contains some nice utils for image segmentation and processing.
+
 package main
 
 import (
@@ -7,6 +10,8 @@ import (
 	"image/jpeg"
 	"image/png"
 	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/fogleman/gg"
@@ -14,6 +19,7 @@ import (
 	"golang.org/x/image/font/gofont/gomono"
 )
 
+// Draws the Mosaic Image as a PNG image.
 func CreateMosaicImage(canvas *gg.Context, colors [][]color.Color, indices []int) {
 	top_y := 0.0
 	y_count := 0
@@ -33,6 +39,7 @@ func CreateMosaicImage(canvas *gg.Context, colors [][]color.Color, indices []int
 	}
 }
 
+// Draws the ASCII matrix as a PNG image.
 func CreateAsciiImage(
 	canvas *gg.Context,
 	lines []string,
@@ -76,6 +83,9 @@ func CreateAsciiImage(
 	}
 }
 
+// Given a matrix of colors representing color values of an image, segments this
+// "image" matrix into blocks of certain sizes determined by the values
+// in "indices" and returns the new image matrix as a flattened array of colors.
 func BlockColor(indices []int, image [][]color.Color, grayscale bool) []color.Color {
 	colors := make([]color.Color, len(indices)*len(indices)/4)
 	count := 0
@@ -85,6 +95,7 @@ func BlockColor(indices []int, image [][]color.Color, grayscale bool) []color.Co
 		for x := 1; x < len(indices); x += 2 {
 			area := uint32(0)
 			rgb := make([]uint32, 3)
+			// Find the average color for every block.
 			for _, valy := range image[start_y:indices[y]] {
 				for _, valx := range valy[start_x:indices[x]] {
 					var R, G, B uint32
@@ -111,6 +122,10 @@ func BlockColor(indices []int, image [][]color.Color, grayscale bool) []color.Co
 	return colors
 }
 
+// Given a matrix of integers representing grayscale values, segments this
+// "image" matrix into blocks of certain sizes determined by the values
+// in "indices" and returns the new image matrix as a flattened array of ASCII
+// characters.
 func Ascii(indices []int, grayscaled [][]int) []byte {
 	chars := " `.,|'\\/~!_-;:)(\"><?*+7j1ilJyc&vt0$VruoI=wzCnY32LTxs4Zkm5hg6qfU9paOS#eX8D%bdRPGFK@AMQNWHEB"
 	ascii := make([]byte, len(indices)*len(indices)/4)
@@ -119,6 +134,7 @@ func Ascii(indices []int, grayscaled [][]int) []byte {
 	for y := 0; y < len(indices); y += 2 {
 		start_x := 0
 		for x := 1; x < len(indices); x += 2 {
+			// Sum together all pixels in a given "block".
 			sum, area := 0, 0
 			for _, valy := range grayscaled[start_y:indices[y]] {
 				for _, valx := range valy[start_x:indices[x]] {
@@ -128,6 +144,7 @@ func Ascii(indices []int, grayscaled [][]int) []byte {
 			}
 			start_x = indices[x]
 			index := len(chars) - (sum/area)*len(chars)/255
+			// Normalize ASCII index.
 			if index > len(chars)-1 {
 				index = len(chars) - 1
 			} else if index < 0 {
@@ -141,6 +158,8 @@ func Ascii(indices []int, grayscaled [][]int) []byte {
 	return ascii
 }
 
+// Parses an image into a matrix of integers representing
+// the grayscale value (from 0 - 255) of each pixel.
 func AsciiChars(image [][]color.Color) [][]int {
 	grayscaled := make([][]int, len(image))
 	for y := 0; y < len(image); y++ {
@@ -153,6 +172,8 @@ func AsciiChars(image [][]color.Color) [][]int {
 	return grayscaled
 }
 
+// Given a "filename" of an image, parses it and returns an
+// array of colors (dimensions same as original image).
 func Pixels(filename string) [][]color.Color {
 	// Read image from "filename".
 	file, err := os.Open(filename)
@@ -186,4 +207,34 @@ func Pixels(filename string) [][]color.Color {
 		}
 	}
 	return pixels
+}
+
+// Copies the given "image" into a new image. New image
+// can also be a grayscaled version of the original.
+func CopyImage(img [][]color.Color, index int, grayscale bool) {
+	w, h := len(img[0]), len(img)
+	new_img := image.NewRGBA(
+		image.Rectangle{
+			image.Point{0, 0},
+			image.Point{w, h},
+		},
+	)
+	if grayscale {
+		for y := 0; y < h; y++ {
+			for x := 0; x < w; x++ {
+				new_img.Set(x, y, color.GrayModel.Convert(img[y][x]))
+			}
+		}
+	} else {
+		for y := 0; y < h; y++ {
+			for x := 0; x < w; x++ {
+				new_img.Set(x, y, img[y][x])
+			}
+		}
+	}
+	output, err := os.Create(filepath.Join(frames, strconv.Itoa(index)+".png"))
+	if err != nil {
+		panic(err)
+	}
+	png.Encode(output, new_img)
 }

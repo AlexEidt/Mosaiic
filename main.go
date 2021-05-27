@@ -1,22 +1,32 @@
+// Alex Eidt
+// Accepts user input and creates the Mosaic GIFs.
+
 package main
 
 import (
 	"flag"
-	"image"
+	"fmt"
 	"image/color"
-	"image/draw"
-	"image/gif"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 
 	"github.com/fogleman/gg"
 )
 
+const (
+	frames = "Frames"
+	gifs   = "GIFs"
+)
+
 func main() {
-	// Create output directory "Data" to store frames.
-	outputDir := filepath.Join(".", "Data")
-	os.MkdirAll(outputDir, os.ModePerm)
+	// Create output directory "Frames" to store frames.
+	frames_dir := filepath.Join(".", frames)
+	os.MkdirAll(frames_dir, os.ModePerm)
+	// Create output directory "GIFs" to store GIFs
+	gifs_dir := filepath.Join(".", gifs)
+	os.MkdirAll(gifs_dir, os.ModePerm)
 
 	// Parse command line args.
 	fontsize := flag.Int("font", 12, "Font Size for ASCII Graphics.")
@@ -25,9 +35,7 @@ func main() {
 	grayscale := flag.Bool("grayscale", false, "Grayscale the image.")
 	keep := flag.Bool("keep", false, "Keep frames used for GIF.")
 	background := flag.Bool("b", false, "White background for ASCII if included. Transparent otherwise.")
-	delay := flag.Int("delay", 100, "GIF Frame Delay in 1/100 of a second.")
-	// background
-	// contrast
+	fps := flag.Float64("fps", 1.0, "GIF Frames per second.")
 
 	flag.Parse()
 
@@ -36,23 +44,39 @@ func main() {
 	filename := args[0]
 	output := args[1]
 
-	Mosaiic(filename, output, *grayscale, *keep, *ascii, *background, *hascolor, *fontsize, *delay)
+	// Create Moasic Frames.
+	n := Mosaiic(filename, *grayscale, *ascii, *background, *hascolor, *fontsize)
+
+	// Remove frames if specified.
+	if !*keep && n != -1 {
+		if !*ascii {
+			n++
+		}
+		for i := 0; i < n; i++ {
+			defer os.Remove(filepath.Join(frames, strconv.Itoa(i)+".png"))
+		}
+	}
+
+	// Call Python Script to create GIF from frames.
+	cmd := exec.Command("python", "process.py", output, fmt.Sprintf("%f", *fps))
+	cmd.Stdout = os.Stdout
+	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
+	cmd.Run()
 }
 
+// Creates each Mosaic Frame.
 func Mosaiic(
-	filename,
-	output string,
+	filename string,
 	grayscale,
-	keep,
 	ascii,
 	background,
 	hascolor bool,
-	fontsize,
-	delay int,
-) {
+	fontsize int,
+) int {
 	pixels := Pixels(filename)
 	if pixels == nil {
-		return // File not found.
+		return -1 // File not found.
 	}
 
 	h, w := len(pixels), len(pixels[0])
@@ -62,19 +86,14 @@ func Mosaiic(
 	var chars [][]int
 	if ascii {
 		chars = AsciiChars(pixels)
+	} else {
+		CopyImage(pixels, len(tree), grayscale)
 	}
 
 	var ASCII []byte
 	var lines []string
 	var colors []color.Color
 	var im [][]color.Color
-
-	disposal := make([]byte, len(tree))
-	// Prevent gif frame stacking/crossfading.
-	for i := 0; i < len(tree); i++ {
-		disposal[i] = gif.DisposalBackground
-	}
-	output_GIF := &gif.GIF{Disposal: disposal}
 
 	level := 1
 	for i := 0; i < len(tree); i++ {
@@ -111,44 +130,8 @@ func Mosaiic(
 		} else {
 			CreateMosaicImage(canvas, im, tree[i])
 		}
-		fname := filepath.Join("Data", strconv.Itoa(i)+".png")
-		canvas.SavePNG(fname)
+		canvas.SavePNG(filepath.Join(frames, strconv.Itoa(i)+".png"))
 		level <<= 1
-
-		f, _ := os.Open(fname)
-		if !keep {
-			defer os.Remove(fname)
-		}
-		defer f.Close()
-
-		img, _, _ := image.Decode(f)
-
-		var palette color.Palette
-		if hascolor || !ascii || grayscale {
-			palette = colors
-		} else {
-			palette = color.Palette{
-				color.Transparent,
-				color.White,
-				color.Black,
-			}
-		}
-
-		p := image.NewPaletted(
-			img.Bounds(),
-			palette,
-		)
-
-		//draw.Draw(p, p.Bounds(), img, img.Bounds().Min, draw.Over)
-		//draw.Draw(p, img.Bounds(), img, image.Point{}, draw.Over)
-		draw.Draw(p, p.Bounds(), img, img.Bounds().Min, draw.Over)
-		output_GIF.Image = append(output_GIF.Image, p)
-		output_GIF.Delay = append(output_GIF.Delay, delay)
 	}
-
-	file, err := os.Create(filepath.Join("Data", output+".gif"))
-	if err != nil {
-		panic(err)
-	}
-	gif.EncodeAll(file, output_GIF)
+	return len(tree)
 }

@@ -1,10 +1,38 @@
+"""
+Alex Eidt
+
+Converts image frames into GIFs.
+"""
+
+#!/usr/local/bin/python3
+
 import imageio
 import os
-from tqdm import tqdm
+import argparse
 
 
-writer = imageio.get_writer('animated.gif', fps=1)
+FRAMES = 'Frames'
+GIF = 'GIFs'
 
-for im in tqdm(sorted(os.listdir('Data'), key=lambda x: int(x.split('.')[0]))):
-    writer.append_data(imageio.imread(os.path.join('Data', im)))
-writer.close()
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('out', help='Output GIF File name.')
+    parser.add_argument('fps', help='Frames per second.')
+
+    args = parser.parse_args()
+
+    writer = imageio.get_writer(
+        os.path.join(GIF, f'{args.out}.gif'),
+        fps=float(args.fps)
+    )
+
+    frames = sorted(os.listdir(FRAMES), key=lambda x: int(x.split('.')[0]))
+    for frame in frames:
+        writer.append_data(imageio.imread(os.path.join(FRAMES, frame)))
+
+    writer.close()
+
+
+if __name__ == '__main__':
+    main()
