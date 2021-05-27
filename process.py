@@ -1,10 +1,9 @@
+#!/usr/local/bin/python3
 """
 Alex Eidt
 
 Converts image frames into GIFs.
 """
-
-#!/usr/local/bin/python3
 
 import imageio
 import os
