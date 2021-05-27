@@ -59,9 +59,15 @@ func CreateAsciiImage(
 	if !hascolor {
 		canvas.SetRGB(0, 0, 0)
 	}
-	_, ht := canvas.MeasureString(string(lines[0][0]))
+	// Find the dimensions of each letter in pixels.
+	wt, ht := canvas.MeasureString(string(lines[0][0]))
+	// Find max of width and height of each letter.
+	size := ht
+	if wt > size {
+		size = wt
+	}
 	count_y := 0
-	row := ht
+	row := size
 	for y := 0; y < len(indices); y += 2 {
 		for row < float64(indices[y]) {
 			count_x := 0
@@ -73,11 +79,11 @@ func CreateAsciiImage(
 						canvas.SetRGB(float64(R)/256, float64(G)/256, float64(B)/256)
 					}
 					canvas.DrawString(string(lines[count_y][count_x]), column, row)
-					column += ht
+					column += size
 				}
 				count_x++
 			}
-			row += ht
+			row += size
 		}
 		count_y++
 	}

@@ -39,6 +39,8 @@ Created GIFs are stored in the `GIFs` directory. The frames used to create GIFs 
 ```
 pip install imageio
 pip install imageio-ffmpeg --user
+
+go get -u github.com/fogleman/gg
 ```
 
 Python is used via a system call to create the GIFs. The Golang GIF library took very long to process each frame which is why this approach was used. Feel free to use any GIF creation method you'd like though. See `main.go` lines `59-64` to deactive this system call.
