@@ -45,6 +45,10 @@ Python is used via a system call to create the GIFs. The Golang GIF library took
 
 # Gallery
 
+## Original Image
+
+<img src="Images/Balloon.jpg" alt="Hot Air Balloons" width=70%>
+
 ## ASCII (Monochrome)
 
 ```
