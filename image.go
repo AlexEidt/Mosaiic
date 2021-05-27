@@ -127,6 +127,7 @@ func BlockColor(indices []int, image [][]color.Color, grayscale bool) []color.Co
 // in "indices" and returns the new image matrix as a flattened array of ASCII
 // characters.
 func Ascii(indices []int, grayscaled [][]int) []byte {
+	// ASCII characters sorted by pixel density.
 	chars := " `.,|'\\/~!_-;:)(\"><?*+7j1ilJyc&vt0$VruoI=wzCnY32LTxs4Zkm5hg6qfU9paOS#eX8D%bdRPGFK@AMQNWHEB"
 	ascii := make([]byte, len(indices)*len(indices)/4)
 	count := 0

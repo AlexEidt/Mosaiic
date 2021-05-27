@@ -32,7 +32,7 @@ Created GIFs are stored in the `GIFs` directory. The frames used to create GIFs 
 ## Dependencies
 
 * Python 3.7+
-* Go v 1.16
+* Go 1.16
 
 ### Libraries
 

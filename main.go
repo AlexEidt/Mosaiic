@@ -43,7 +43,7 @@ func main() {
 	filename := args[0]
 	output := args[1]
 
-	// Create Moasic Frames.
+	// Create Mosaic Frames.
 	n := Mosaiic(filename, *grayscale, *ascii, *hascolor, *fontsize)
 
 	// Remove frames if specified.
