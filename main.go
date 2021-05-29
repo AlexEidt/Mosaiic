@@ -35,6 +35,7 @@ func main() {
 	grayscale := flag.Bool("grayscale", false, "Grayscale the image.")
 	keep := flag.Bool("keep", false, "Keep frames used for GIF.")
 	fps := flag.Float64("fps", 1.0, "GIF Frames per second.")
+	io := flag.Bool("io", false, "Add Zoom In/Out animatio to GIF")
 
 	flag.Parse()
 
@@ -57,7 +58,7 @@ func main() {
 	}
 
 	// Call Python Script to create GIF from frames.
-	cmd := exec.Command("python", "process.py", output, fmt.Sprintf("%f", *fps))
+	cmd := exec.Command("python", "process.py", output, fmt.Sprintf("%f", *fps), fmt.Sprintf("%t", *io))
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr

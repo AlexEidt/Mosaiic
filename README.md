@@ -19,6 +19,8 @@ go run *.go [optional arguments] filename output
         GIF Frames per second. (default 1)       
   -grayscale
         Grayscale the image.
+  -io
+        Add Zoom In/Out animatio to GIF
   -keep
         Keep frames used for GIF
 ```
@@ -128,5 +130,15 @@ go run *.go -grayscale Images/Balloon.jpg balloon-gray
 ```
 
 <img src="GIFs/balloon-gray.gif" alt="Balloon GIF Grayscaled" width=70%>
+
+<br />
+
+## Zoom In/Out
+
+```
+go run *.go -io Images/Balloon.jpg balloon-io
+```
+
+<img src="GIFs/balloon-io.gif" alt="Balloon GIF Zoom In/Out" width=70%>
 
 <br />
