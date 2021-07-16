@@ -11,18 +11,24 @@ go run *.go [optional arguments] filename output
 ```
   -ascii
         Use ASCII Graphics.
+  -bold
+        Use Bold Characters.
   -color
         Include color with ASCII.
   -font float
-        Font Size for ASCII Graphics. (default 6)
+        Font size for ASCII Graphics. (default 6)
+  -fontstop float
+        Stopping font size. (default -1)
   -fps float
-        GIF Frames per second. (default 1)       
+        GIF Frames per second. (default 1)
   -grayscale
         Grayscale the image.
   -io
         Add Zoom In/Out animatio to GIF
   -keep
-        Keep frames used for GIF
+        Keep frames used for GIF.
+  -square
+        Use square bounding box for characters.
 ```
 
 Created GIFs are stored in the `GIFs` directory. The frames used to create GIFs are stored in the `Frames` directory temporarily. If you'd like to keep them, make sure to specify `-keep` when you run the script. Directory tree made using the [Directory Grapher Tool](https://github.com/AlexEidt/Directory-Grapher).

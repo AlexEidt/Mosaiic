@@ -17,6 +17,7 @@ import (
 	"github.com/fogleman/gg"
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font/gofont/gomono"
+	"golang.org/x/image/font/gofont/gomonobold"
 )
 
 // Draws the Mosaic Image as a PNG image.
@@ -46,8 +47,13 @@ func CreateAsciiImage(
 	colors [][]color.Color,
 	indices []int,
 	fontsize float64,
+	bold,
+	square bool,
 ) {
 	font, err := truetype.Parse(gomono.TTF)
+	if bold {
+		font, err = truetype.Parse(gomonobold.TTF)
+	}
 	if err != nil {
 		panic("Go Mono Font not found.")
 	}
@@ -61,13 +67,16 @@ func CreateAsciiImage(
 	}
 	// Find the dimensions of each letter in pixels.
 	wt, ht := canvas.MeasureString(string(lines[0][0]))
-	// Find max of width and height of each letter.
-	size := ht
-	if wt > size {
-		size = wt
+	size_w, size_h := wt, ht
+	if square {
+		// Find max of width and height of each letter.
+		size_w, size_h = ht, ht
+		if wt > ht {
+			size_w, size_h = wt, wt
+		}
 	}
 	count_y := 0
-	row := size
+	row := size_h
 	for y := 0; y < len(indices); y += 2 {
 		for row < float64(indices[y]) {
 			count_x := 0
@@ -79,11 +88,11 @@ func CreateAsciiImage(
 						canvas.SetRGB(float64(R)/256, float64(G)/256, float64(B)/256)
 					}
 					canvas.DrawString(string(lines[count_y][count_x]), column, row)
-					column += size
+					column += size_w
 				}
 				count_x++
 			}
-			row += size
+			row += size_h
 		}
 		count_y++
 	}

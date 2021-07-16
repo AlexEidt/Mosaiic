@@ -29,13 +29,16 @@ func main() {
 	os.MkdirAll(gifs_dir, os.ModePerm)
 
 	// Parse command line args.
-	fontsize := flag.Float64("font", 6.0, "Font Size for ASCII Graphics.")
+	fontsize := flag.Float64("font", 6.0, "Font size for ASCII Graphics.")
+	fontstop := flag.Float64("fontstop", -1.0, "Stopping font size.")
 	ascii := flag.Bool("ascii", false, "Use ASCII Graphics.")
 	hascolor := flag.Bool("color", false, "Include color with ASCII.")
 	grayscale := flag.Bool("grayscale", false, "Grayscale the image.")
 	keep := flag.Bool("keep", false, "Keep frames used for GIF.")
 	fps := flag.Float64("fps", 1.0, "GIF Frames per second.")
 	io := flag.Bool("io", false, "Add Zoom In/Out animatio to GIF")
+	bold := flag.Bool("bold", false, "Use Bold Characters.")
+	square := flag.Bool("square", false, "Use square bounding box for characters.")
 
 	flag.Parse()
 
@@ -45,7 +48,7 @@ func main() {
 	output := args[1]
 
 	// Create Mosaic Frames.
-	n := Mosaiic(filename, *grayscale, *ascii, *hascolor, *fontsize)
+	n := Mosaiic(filename, *grayscale, *ascii, *bold, *hascolor, *square, *fontsize, *fontstop)
 
 	// Remove frames if specified.
 	if !*keep && n != -1 {
@@ -70,8 +73,11 @@ func Mosaiic(
 	filename string,
 	grayscale,
 	ascii,
-	hascolor bool,
-	fontsize float64,
+	bold,
+	hascolor,
+	square bool,
+	fontsize,
+	fontstop float64,
 ) int {
 	pixels := Pixels(filename)
 	if pixels == nil {
@@ -99,6 +105,13 @@ func Mosaiic(
 	// "level" represents the current level of division.
 	// level * level gives the current number of image segments.
 	level := 1
+
+	// Calculate font step sizes if fontstop is not -1
+	if fontstop == -1.0 || fontstop > fontsize {
+		fontstop = fontsize
+	}
+	//step := (fontsize - fontstop) / (float64(len(tree)) - 1)
+	fontstart := fontsize
 	for i := 0; i < len(tree); i++ {
 		if ascii {
 			ASCII = Ascii(tree[i], chars)
@@ -124,10 +137,15 @@ func Mosaiic(
 
 		canvas := gg.NewContext(w, h)
 		if ascii {
+			fmt.Println(fontstart)
 			// Set background of ASCII images to be white.
 			canvas.SetRGB(1, 1, 1)
 			canvas.Clear()
-			CreateAsciiImage(canvas, lines, im, tree[i], fontsize)
+			CreateAsciiImage(canvas, lines, im, tree[i], fontstart, bold, square)
+			fontstart /= 1.65
+			if fontstart < fontstop {
+				break
+			}
 		} else {
 			CreateMosaicImage(canvas, im, tree[i])
 		}
