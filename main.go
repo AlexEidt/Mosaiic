@@ -36,7 +36,7 @@ func main() {
 	grayscale := flag.Bool("grayscale", false, "Grayscale the image.")
 	keep := flag.Bool("keep", false, "Keep frames used for GIF.")
 	fps := flag.Float64("fps", 1.0, "GIF Frames per second.")
-	io := flag.Bool("io", false, "Add Zoom In/Out animatio to GIF")
+	io := flag.Bool("io", false, "Add Zoom In/Out animation to GIF")
 	bold := flag.Bool("bold", false, "Use Bold Characters.")
 	square := flag.Bool("square", false, "Use square bounding box for characters.")
 

@@ -24,7 +24,7 @@ go run *.go [optional arguments] filename output
   -grayscale
         Grayscale the image.
   -io
-        Add Zoom In/Out animatio to GIF
+        Add Zoom In/Out animation to GIF
   -keep
         Keep frames used for GIF.
   -square
