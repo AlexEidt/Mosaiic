@@ -137,7 +137,6 @@ func Mosaiic(
 
 		canvas := gg.NewContext(w, h)
 		if ascii {
-			fmt.Println(fontstart)
 			// Set background of ASCII images to be white.
 			canvas.SetRGB(1, 1, 1)
 			canvas.Clear()
