@@ -17,8 +17,6 @@ go run *.go [optional arguments] filename output
         Include color with ASCII.
   -font float
         Font size for ASCII Graphics. (default 6)
-  -fontstop float
-        Stopping font size. (default -1)
   -fps float
         GIF Frames per second. (default 1)
   -grayscale

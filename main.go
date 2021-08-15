@@ -30,7 +30,6 @@ func main() {
 
 	// Parse command line args.
 	fontsize := flag.Float64("font", 6.0, "Font size for ASCII Graphics.")
-	fontstop := flag.Float64("fontstop", -1.0, "Stopping font size.")
 	ascii := flag.Bool("ascii", false, "Use ASCII Graphics.")
 	hascolor := flag.Bool("color", false, "Include color with ASCII.")
 	grayscale := flag.Bool("grayscale", false, "Grayscale the image.")
@@ -48,7 +47,7 @@ func main() {
 	output := args[1]
 
 	// Create Mosaic Frames.
-	n := Mosaiic(filename, *grayscale, *ascii, *bold, *hascolor, *square, *fontsize, *fontstop)
+	n := Mosaiic(filename, *grayscale, *ascii, *bold, *hascolor, *square, *fontsize)
 
 	// Remove frames if specified.
 	if !*keep && n != -1 {
@@ -76,8 +75,7 @@ func Mosaiic(
 	bold,
 	hascolor,
 	square bool,
-	fontsize,
-	fontstop float64,
+	fontsize float64,
 ) int {
 	pixels := Pixels(filename)
 	if pixels == nil {
@@ -106,12 +104,6 @@ func Mosaiic(
 	// level * level gives the current number of image segments.
 	level := 1
 
-	// Calculate font step sizes if fontstop is not -1
-	if fontstop == -1.0 || fontstop > fontsize {
-		fontstop = fontsize
-	}
-	//step := (fontsize - fontstop) / (float64(len(tree)) - 1)
-	fontstart := fontsize
 	for i := 0; i < len(tree); i++ {
 		if ascii {
 			ASCII = Ascii(tree[i], chars)
@@ -140,11 +132,7 @@ func Mosaiic(
 			// Set background of ASCII images to be white.
 			canvas.SetRGB(1, 1, 1)
 			canvas.Clear()
-			CreateAsciiImage(canvas, lines, im, tree[i], fontstart, bold, square)
-			fontstart /= 1.65
-			if fontstart < fontstop {
-				break
-			}
+			CreateAsciiImage(canvas, lines, im, tree[i], fontsize, bold, square)
 		} else {
 			CreateMosaicImage(canvas, im, tree[i])
 		}
