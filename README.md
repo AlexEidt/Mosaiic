@@ -5,7 +5,7 @@ Create cool animated Image mosaics!
 ## Usage
 
 ```
-go run *.go [optional arguments] filename output
+go run . [optional arguments] filename output
 ```
 
 ```
